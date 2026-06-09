@@ -7,3 +7,9 @@ ENV/
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Misc
+*.pdf
+*.doc*
+*.old
+*.yml
