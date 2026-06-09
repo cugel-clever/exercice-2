@@ -1,0 +1,74 @@
+# Bronze
+# Partie 1 : Installer, importer les modules et charger acces.log
+import re                           # Expressions régulières
+import os                           # Accès fichiers système
+import csv
+from datetime import datetime       # Conversion et extraction de dates
+from pymongo import MongoClient     # Connexion et opérations MongoDB
+
+import geoip2 as geo
+import pandas as pd
+
+# GeoIP : lookup pays depuis IP
+try:
+    from geolite2 import geolite2
+    GEOIP_AVAILABLE = True
+except ImportError:
+    GEOIP_AVAILABLE = False # Mode simulation activé
+
+# Pandas : option pour les agrégations Gold
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
+
+# Extraction par Regex
+# Féterminer le chemin du fichier log (même racine que le programme)
+CHEMIN_LOG  = "access.log"
+CHEMIN_EXTRANT = "extraction_log.csv"
+
+# Partie 2 : Regex
+
+# Déterminer le pattern regex pour extraire les valeurs
+# On teste avec "IP" pour commencer, bonifier par la suite!
+# Intéressant, on apprend beaucoup en décortiquant un pattern regex!
+# ip_pattern = "(?P<ip>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)"
+LOG_PATTERN = re.compile(
+    r"\b(?P<ip_1>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?P<ip_2>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?P<ip_3>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?P<ip_4>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\b"
+)
+
+# Extraire les données du log
+def  parse_log(chemin_log, chemin_extrant):
+    liste_donnees_extraites = []
+    
+    # Lire le log
+    with open(CHEMIN_LOG, "r", encoding="utf-8") as file:
+        for line in file:
+            match = LOG_PATTERN.match(line.strip())
+
+            if match:
+                # Les amener dans un dictionnaire
+                liste_donnees_extraites.append(match.groupdict())
+
+    # Amener les données dans un fichier .csv
+    if liste_donnees_extraites:
+        # Obtenir les clés à inclure comme colonne .csv
+        headers = liste_donnees_extraites[0].keys()
+
+        with open(
+            CHEMIN_EXTRANT, "w", newline="", encoding="utf-8"
+        ) as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=headers)
+            writer.writeheader()
+            writer.writerows(liste_donnees_extraites)
+
+        print(f"Extraction de {len(liste_donnees_extraites)} lignes vers {CHEMIN_EXTRANT}")
+    else:
+        print(f"Échec d'extraction de données du fichier log {CHEMIN_LOG}")
+
+def main():
+        parse_log(CHEMIN_LOG, CHEMIN_EXTRANT)
+
+if __name__ == "__main__":
+    main()
