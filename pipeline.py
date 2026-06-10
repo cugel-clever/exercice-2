@@ -75,15 +75,31 @@ def creer_dictionnaire(input_file):
         log_dict = csv.DictReader(file)
         return list(log_dict)
 
-def convert_timestamp(raw_ts) :
-    pass
+def convert_timestamp(raw_ts):
+    format_string_from_str = "%d/%b/%Y:%H:%M:%S %z"
+    format_string_from_timestamp = "%Y-%m-%d %H:%M:%S"
+    # Convertir la date dans un format 2024-10-10 13:55:36' ou none si malformé
+    for item in raw_ts: # En fait le dictionnaire... le timestamp sera ciblé
+        #print(item["raw_timestamp"])
+        # En premier lieu, convertir le string dans un format datetime
+        # Puis, si bonne donnée, la retransformer dans le format désiré
+        try:
+            date_obj = datetime.strptime(item["raw_timestamp"], format_string_from_str)
+            item["raw_timestamp"] = date_obj.strftime(format_string_from_timestamp)
+        except:
+            item["raw_timestamp"] = "none"
+
+    #return la liste de dictionnaires une fois traitée
+    return raw_ts
 
 def main():
         work_dict = []
 
         parse_log(CHEMIN_LOG, CHEMIN_EXTRANT)
         work_dict = creer_dictionnaire("extraction_log.csv")
-        # print(f"Résultat: {work_dict}")
+       
+        work_dict = convert_timestamp(work_dict)
+        print(f"Résultat: {work_dict}")
 
 if __name__ == "__main__":
     main()
