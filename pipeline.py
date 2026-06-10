@@ -35,7 +35,8 @@ CHEMIN_EXTRANT = "extraction_log.csv"
 # Intéressant, on apprend beaucoup en décortiquant un pattern regex!
 # ip_pattern = "(?P<ip>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)"
 LOG_PATTERN = re.compile(
-    r"\b(?P<ip_1>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?P<ip_2>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?P<ip_3>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?P<ip_4>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\b\s(?P<identd>\S+)\s(?P<user>\S+)\s\[(?P<raw_timestamp>.+?)\]\s\"(?P<method>\S+)\s(?P<URL>\S+)\s(?P<protocol>[^\"\s]+)\"\s(?P<status_code>\d{3})\s(?P<size>\d+|-)\s\"(?P<referrer>[^\"\s]+)\"\s\"(?P<user_agent>[^\"\s]+)"
+    #r"\b(?P<ip_1>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?P<ip_2>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?P<ip_3>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?P<ip_4>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\b\s(?P<identd>\S+)\s(?P<user>\S+)\s\[(?P<raw_timestamp>.+?)\]\s\"(?P<method>\S+)\s(?P<URL>\S+)\s(?P<protocol>[^\"\s]+)\"\s(?P<status_code>\d{3})\s(?P<size>\d+|-)\s\"(?P<referrer>[^\"\s]+)\"\s\"(?P<user_agent>[^\"\s]+)"
+    r"\b(?P<ip>((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))\b\s(?P<identd>\S+)\s(?P<user>\S+)\s\[(?P<raw_timestamp>.+?)\]\s\"(?P<method>\S+)\s(?P<URL>\S+)\s(?P<protocol>[^\"\s]+)\"\s(?P<status_code>\d{3})\s(?P<size>\d+|-)\s\"(?P<referrer>[^\"\s]+)\"\s\"(?P<user_agent>[^\"\s]+)"
 )
 
 # Extraire les données du log
