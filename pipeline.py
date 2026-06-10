@@ -68,8 +68,22 @@ def  parse_log(chemin_log, chemin_extrant):
     else:
         print(f"Échec d'extraction de données du fichier log {CHEMIN_LOG}")
 
+def creer_dictionnaire(input_file):
+    # Créer un dictionnaire à partir du fichier intrant
+    # input_file constitue un path
+    with open(input_file, mode="r", encoding="utf-8") as file:
+        log_dict = csv.DictReader(file)
+        return list(log_dict)
+
+def convert_timestamp(raw_ts) :
+    pass
+
 def main():
+        work_dict = []
+
         parse_log(CHEMIN_LOG, CHEMIN_EXTRANT)
+        work_dict = creer_dictionnaire("extraction_log.csv")
+        # print(f"Résultat: {work_dict}")
 
 if __name__ == "__main__":
     main()
