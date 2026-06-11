@@ -80,16 +80,36 @@ def convert_timestamp(raw_ts):
     format_string_from_timestamp = "%Y-%m-%d %H:%M:%S"
     # Convertir la date dans un format 2024-10-10 13:55:36' ou none si malformé
     for item in raw_ts: # En fait le dictionnaire... le timestamp sera ciblé
-        #print(item["raw_timestamp"])
         # En premier lieu, convertir le string dans un format datetime
         # Puis, si bonne donnée, la retransformer dans le format désiré
         try:
             date_obj = datetime.strptime(item["raw_timestamp"], format_string_from_str)
             item["raw_timestamp"] = date_obj.strftime(format_string_from_timestamp)
         except:
-            item["raw_timestamp"] = "none"
+            item["raw_timestamp"] = "None"
 
-    #return la liste de dictionnaires une fois traitée
+    # Retourner la liste de dictionnaires une fois traitée
+    return raw_ts
+
+def extract_hour(raw_ts):
+    # Extraire l'heure pour permettre l'agrégation temporelle en couche Gold.
+    # Implique d'ajouter une colonne au dictionnaire
+
+    HOUR_PATTERN = re.compile(
+       #r"\b(0[0-9]|1[0-9]|2[0-3])(?=:)"
+       r"(?<=\s)\d{1,2}(?=:)"
+    )
+
+    for item in raw_ts: # En fait le dictionnaire... le timestamp sera ciblé
+        match = re.search(HOUR_PATTERN, item["raw_timestamp"])
+        #match = HOUR_PATTERN.match(item["raw_timestamp"])
+
+        if match:
+            item["hour"] = match.group(0)
+        else:
+            item["hour"] = "None"
+
+    # Retourner la liste de dictionnaires une fois traitée
     return raw_ts
 
 def main():
@@ -99,6 +119,8 @@ def main():
         work_dict = creer_dictionnaire("extraction_log.csv")
        
         work_dict = convert_timestamp(work_dict)
+
+        work_dict = extract_hour(work_dict)
         print(f"Résultat: {work_dict}")
 
 if __name__ == "__main__":
