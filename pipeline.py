@@ -33,9 +33,7 @@ CHEMIN_EXTRANT = "extraction_log.csv"
 # Déterminer le pattern regex pour extraire les valeurs
 # On teste avec "IP" pour commencer, bonifier par la suite!
 # Intéressant, on apprend beaucoup en décortiquant un pattern regex!
-# ip_pattern = "(?P<ip>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)"
 LOG_PATTERN = re.compile(
-    #r"\b(?P<ip_1>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?P<ip_2>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?P<ip_3>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.(?P<ip_4>:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\b\s(?P<identd>\S+)\s(?P<user>\S+)\s\[(?P<raw_timestamp>.+?)\]\s\"(?P<method>\S+)\s(?P<URL>\S+)\s(?P<protocol>[^\"\s]+)\"\s(?P<status_code>\d{3})\s(?P<size>\d+|-)\s\"(?P<referrer>[^\"\s]+)\"\s\"(?P<user_agent>[^\"\s]+)"
     r"\b(?P<ip>((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))\b\s(?P<identd>\S+)\s(?P<user>\S+)\s\[(?P<raw_timestamp>.+?)\]\s\"(?P<method>\S+)\s(?P<URL>\S+)\s(?P<protocol>[^\"\s]+)\"\s(?P<status_code>\d{3})\s(?P<size>\d+|-)\s\"(?P<referrer>[^\"\s]+)\"\s\"(?P<user_agent>[^\"\s]+)"
 )
 
@@ -97,13 +95,11 @@ def extract_hour(input_dict):
     # Implique d'ajouter une colonne au dictionnaire
 
     HOUR_PATTERN = re.compile(
-       #r"\b(0[0-9]|1[0-9]|2[0-3])(?=:)"
        r"(?<=\s)\d{1,2}(?=:)"
     )
 
     for item in input_dict: # Le timestamp sera ciblé
         match = re.search(HOUR_PATTERN, item["raw_timestamp"])
-        #match = HOUR_PATTERN.match(item["raw_timestamp"])
 
         if match:
             item["hour"] = match.group(0)
@@ -166,28 +162,31 @@ def get_country(input_dict):
             # IP privées
             if match := re.match(r"10.", item["ip"]):
                 ip_country = "Private/Local"
-                #print(f"AAAA: {item["ip"]}\n")
             elif match := re.match(r"1.1.1.1", item["ip"]):
                 ip_country = "Cloudflare DNS"
             elif match := re.match(r"192.168.", item["ip"]):
                 ip_country = "Private/Local"
-                #print(f"BBBB: {item["ip"]}\n")
             elif match := re.match(r"172.16.31.", item["ip"]):
                 ip_country = "Private/Local"
-                #print(f"CCCC: {item["ip"]}\n")
             elif match := re.match(r"127.", item["ip"]):
                 ip_country = "Private/Local"
-                # print(f"DDDD: {item["ip"]}\n")
             else: # Ici ce sont les ip qui sont à géolocaliser
                 try:
                     response = reader.country(item["ip"])
                     ip_country = response.country.name
-                    #print(f"EEEE: {item["ip"]}\n") 
                 except:
                     ip_country = "Adresse IP inconnue"
 
             item["country"] = ip_country
 
+    return input_dict
+
+def normalize_url(input_dict):
+    for item in input_dict:
+        base_url = item["URL"].split('?')[0]
+        item["URL"] = base_url
+
+    # Retourner la liste de dictionnaires une fois traitée
     return input_dict
 
 def main():
@@ -203,11 +202,10 @@ def main():
         work_dict = get_status_category(work_dict)
         
         work_dict = get_country(work_dict)
-        #print(f"Résultat: {work_dict}")
+
+        work_dict = normalize_url(work_dict)
 
         create_csv_file(work_dict)
         
-
-
 if __name__ == "__main__":
     main()
