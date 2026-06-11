@@ -189,6 +189,48 @@ def normalize_url(input_dict):
     # Retourner la liste de dictionnaires une fois traitée
     return input_dict
 
+def clean_transform(input_dict):
+    # Contrairement à ce qui est inscrit dans l'énoncé du tp, pas
+    # d'orchestration, mais on remplacera les "-" par "None" pour
+    # tous les champs qui en ont.
+    # ip: OK
+    # identd : À nettoyer
+    # user : À nettoyer
+    # raw_timestamp : OK
+    # method : OK
+    # URL : OK
+    # protocol : OK
+    # status : OK
+    # size : À nettoyer
+    # referrer : À nettoyer
+    # user_agent : À nettoyer
+    # hour : OK
+    # country : OK
+
+    for item in input_dict:
+        if item["identd"] == "-":
+            none_value = "None"
+            item["identd"] = none_value
+
+        if item["user"] == "-":
+            none_value = "None"
+            item["user"] = none_value       
+
+        if item["size"] == "-":
+            none_value = "None"
+            item["size"] = none_value       
+
+        if item["referrer"] == "-":
+            none_value = "None"
+            item["referrer"] = none_value       
+
+        if item["user_agent"] == "-":
+            none_value = "None"
+            item["user_agent"] = none_value       
+
+    # Retourner la liste de dictionnaires une fois traitée
+    return input_dict
+
 def main():
         work_dict = []
 
@@ -204,6 +246,8 @@ def main():
         work_dict = get_country(work_dict)
 
         work_dict = normalize_url(work_dict)
+
+        work_dict = clean_transform(work_dict)
 
         create_csv_file(work_dict)
         
