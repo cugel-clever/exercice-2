@@ -249,7 +249,39 @@ def main():
 
         work_dict = clean_transform(work_dict)
 
-        create_csv_file(work_dict)
+        # Ok, ici on ne conserve que les colonnes requises
+        # Colonne exclue : "identd"
+        # Colonne à renommer: raw_timestamp --> timestamp
+        # Colonne à renommer: URL --> url
+        work_dict2 = work_dict
+
+        for item in work_dict2:
+            if "identd" in item:
+                item.pop("identd")
+            
+            if "raw_timestamp" in item:
+                item["timestamp"] = item.pop("raw_timestamp")
+
+            if "URL" in item:
+                item["url"] = item.pop("URL")
+
+        # Réordonnancer les colonnes
+        ordre_souhaite = ["ip", "user", "timestamp", "hour", "method", "url", "protocol", "status_code", "status_category", "size", "referrer", "user_agent", "country"]
+        dict_final = []
+
+        # Boucle pour ordonnancer le tout
+        for item in work_dict2:
+            nouveau_dict = {}
+
+            # Recréer le dictionnaire
+            for key in ordre_souhaite:
+                if key in item:
+                    nouveau_dict[key] = item[key]
+
+            dict_final.append(nouveau_dict)
+
+
+        create_csv_file(dict_final)
         
 if __name__ == "__main__":
     main()
