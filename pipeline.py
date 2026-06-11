@@ -119,10 +119,41 @@ def get_status_category(input_dict):
     # colonne "status_category"
     for item in input_dict:
         code = int(item["status_code"] ) // 100
-        item["status_category"] = code
+        if code == 2:
+            code_str = "Success"
+        elif code == 3:
+            code_str = "Redirection"
+        elif code == 4:
+            code_str = "Client Error"
+        elif code == 5:
+            code_str = "Server _Error"
+        else:
+            code_str = "Unknown status code"
+        item["status_category"] = code_str
 
     # Retourner la liste de dictionnaires une fois traitée
     return input_dict
+
+def create_csv_file(input_dict):
+
+    # Le fichier à produire
+    csv_file = "output_test.csv"
+
+    # Extraire les noms des colonnes
+    keys = input_dict[0].keys()
+
+    # Ouvrir le fichier et inscrire les occurrences
+    with open(csv_file, mode="w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=keys)
+        
+        # Ajouter les colonnes
+        writer.writeheader()
+        
+        # Pousser le dictionnaire en un bloc
+        writer.writerows(input_dict)
+
+    print(f"Extraction de {len(input_dict)} lignes vers {csv_file}!")
+
 
 def main():
         work_dict = []
@@ -135,7 +166,10 @@ def main():
         work_dict = extract_hour(work_dict)
 
         work_dict = get_status_category(work_dict)
-        print(f"Résultat: {work_dict}")
+        
+        create_csv_file(work_dict)
+        #print(f"Résultat: {work_dict}")
+
 
 if __name__ == "__main__":
     main()
