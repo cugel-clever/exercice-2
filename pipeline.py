@@ -159,25 +159,34 @@ def create_csv_file(input_dict):
 def get_country(input_dict):
     # Si IP privée (10.x, 192.168.x, 172.16-31.x, 127.x) ==> 'Private/Local'
     # Sinon utiliser geolite2.reader().get(ip)
-    for item in input_dict:
-        # IP privées
-        if match := re.match(r"10.", item["ip"]):
-            ip_country = "Private/Local"
-            #print(f"AAAA: {item["ip"]}\n")
-        elif match := re.match(r"192.168.", item["ip"]):
-            ip_country = "Private/Local"
-            #print(f"BBBB: {item["ip"]}\n")
-        elif match := re.match(r"172.16.31.", item["ip"]):
-            ip_country = "Private/Local"
-            #print(f"CCCC: {item["ip"]}\n")
-        elif match := re.match(r"127.", item["ip"]):
-            ip_country = "Private/Local"
-            # print(f"DDDD: {item["ip"]}\n")
-        else: # Ici ce sont les ip qui sont à géolocaliser
-             ip_country = "CANADA"
-             #print(f"EEEE: {item["ip"]}\n") 
+    import geoip2.database
+    
+    with geoip2.database.Reader("GeoLite2-Country.mmdb") as reader:
+        for item in input_dict:
+            # IP privées
+            if match := re.match(r"10.", item["ip"]):
+                ip_country = "Private/Local"
+                #print(f"AAAA: {item["ip"]}\n")
+            elif match := re.match(r"1.1.1.1", item["ip"]):
+                ip_country = "Cloudflare DNS"
+            elif match := re.match(r"192.168.", item["ip"]):
+                ip_country = "Private/Local"
+                #print(f"BBBB: {item["ip"]}\n")
+            elif match := re.match(r"172.16.31.", item["ip"]):
+                ip_country = "Private/Local"
+                #print(f"CCCC: {item["ip"]}\n")
+            elif match := re.match(r"127.", item["ip"]):
+                ip_country = "Private/Local"
+                # print(f"DDDD: {item["ip"]}\n")
+            else: # Ici ce sont les ip qui sont à géolocaliser
+                try:
+                    response = reader.country(item["ip"])
+                    ip_country = response.country.name
+                    #print(f"EEEE: {item["ip"]}\n") 
+                except:
+                    ip_country = "Adresse IP inconnue"
 
-        item["country"] = ip_country
+            item["country"] = ip_country
 
     return input_dict
 
