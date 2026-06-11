@@ -75,11 +75,11 @@ def creer_dictionnaire(input_file):
         log_dict = csv.DictReader(file)
         return list(log_dict)
 
-def convert_timestamp(raw_ts):
+def convert_timestamp(input_dict):
     format_string_from_str = "%d/%b/%Y:%H:%M:%S %z"
     format_string_from_timestamp = "%Y-%m-%d %H:%M:%S"
     # Convertir la date dans un format 2024-10-10 13:55:36' ou none si malformé
-    for item in raw_ts: # En fait le dictionnaire... le timestamp sera ciblé
+    for item in input_dict: # Le timestamp sera ciblé
         # En premier lieu, convertir le string dans un format datetime
         # Puis, si bonne donnée, la retransformer dans le format désiré
         try:
@@ -89,9 +89,9 @@ def convert_timestamp(raw_ts):
             item["raw_timestamp"] = "None"
 
     # Retourner la liste de dictionnaires une fois traitée
-    return raw_ts
+    return input_dict
 
-def extract_hour(raw_ts):
+def extract_hour(input_dict):
     # Extraire l'heure pour permettre l'agrégation temporelle en couche Gold.
     # Implique d'ajouter une colonne au dictionnaire
 
@@ -100,7 +100,7 @@ def extract_hour(raw_ts):
        r"(?<=\s)\d{1,2}(?=:)"
     )
 
-    for item in raw_ts: # En fait le dictionnaire... le timestamp sera ciblé
+    for item in input_dict: # Le timestamp sera ciblé
         match = re.search(HOUR_PATTERN, item["raw_timestamp"])
         #match = HOUR_PATTERN.match(item["raw_timestamp"])
 
@@ -110,7 +110,19 @@ def extract_hour(raw_ts):
             item["hour"] = "None"
 
     # Retourner la liste de dictionnaires une fois traitée
-    return raw_ts
+    return input_dict
+
+def get_status_category(input_dict):
+    # Méthode pour produire le statut d'un code http
+    # Division entière du code, puis selon la valeur obtenue,
+    # insertion de la chaîne de caractère dans une nouvelle
+    # colonne "status_category"
+    for item in input_dict:
+        code = int(item["status_code"] ) // 100
+        item["status_category"] = code
+
+    # Retourner la liste de dictionnaires une fois traitée
+    return input_dict
 
 def main():
         work_dict = []
@@ -121,6 +133,8 @@ def main():
         work_dict = convert_timestamp(work_dict)
 
         work_dict = extract_hour(work_dict)
+
+        work_dict = get_status_category(work_dict)
         print(f"Résultat: {work_dict}")
 
 if __name__ == "__main__":
