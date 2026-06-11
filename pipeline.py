@@ -39,8 +39,8 @@ LOG_PATTERN = re.compile(
     r"\b(?P<ip>((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))\b\s(?P<identd>\S+)\s(?P<user>\S+)\s\[(?P<raw_timestamp>.+?)\]\s\"(?P<method>\S+)\s(?P<URL>\S+)\s(?P<protocol>[^\"\s]+)\"\s(?P<status_code>\d{3})\s(?P<size>\d+|-)\s\"(?P<referrer>[^\"\s]+)\"\s\"(?P<user_agent>[^\"\s]+)"
 )
 
-# Extraire les données du log
 def  parse_log(chemin_log, chemin_extrant):
+    # Extraire les données du log
     liste_donnees_extraites = []
     
     # Lire le log
@@ -50,6 +50,7 @@ def  parse_log(chemin_log, chemin_extrant):
 
             if match:
                 # Les amener dans un dictionnaire
+                # Les occurrences erronées ne seront pas incluses
                 liste_donnees_extraites.append(match.groupdict())
 
     # Amener les données dans un fichier .csv
@@ -129,6 +130,7 @@ def get_status_category(input_dict):
             code_str = "Server _Error"
         else:
             code_str = "Unknown status code"
+        
         item["status_category"] = code_str
 
     # Retourner la liste de dictionnaires une fois traitée
@@ -154,6 +156,30 @@ def create_csv_file(input_dict):
 
     print(f"Extraction de {len(input_dict)} lignes vers {csv_file}!")
 
+def get_country(input_dict):
+    # Si IP privée (10.x, 192.168.x, 172.16-31.x, 127.x) ==> 'Private/Local'
+    # Sinon utiliser geolite2.reader().get(ip)
+    for item in input_dict:
+        # IP privées
+        if match := re.match(r"10.", item["ip"]):
+            ip_country = "Private/Local"
+            #print(f"AAAA: {item["ip"]}\n")
+        elif match := re.match(r"192.168.", item["ip"]):
+            ip_country = "Private/Local"
+            #print(f"BBBB: {item["ip"]}\n")
+        elif match := re.match(r"172.16.31.", item["ip"]):
+            ip_country = "Private/Local"
+            #print(f"CCCC: {item["ip"]}\n")
+        elif match := re.match(r"127.", item["ip"]):
+            ip_country = "Private/Local"
+            # print(f"DDDD: {item["ip"]}\n")
+        else: # Ici ce sont les ip qui sont à géolocaliser
+             ip_country = "CANADA"
+             #print(f"EEEE: {item["ip"]}\n") 
+
+        item["country"] = ip_country
+
+    return input_dict
 
 def main():
         work_dict = []
@@ -167,8 +193,11 @@ def main():
 
         work_dict = get_status_category(work_dict)
         
-        create_csv_file(work_dict)
+        work_dict = get_country(work_dict)
         #print(f"Résultat: {work_dict}")
+
+        create_csv_file(work_dict)
+        
 
 
 if __name__ == "__main__":
