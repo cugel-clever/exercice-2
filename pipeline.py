@@ -5,6 +5,8 @@ import os                           # Accès fichiers système
 import csv
 from datetime import datetime       # Conversion et extraction de dates
 from pymongo import MongoClient     # Connexion et opérations MongoDB
+from typing import List, Dict, Any
+import logging
 
 import geoip2 as geo
 import pandas as pd
@@ -265,6 +267,35 @@ def final_transform(input_dict):
 
     return work_dict2
 
+def load_to_mongodb(data: List[Dict[str, Any]]) -> None:
+    # Configuration MongoDB
+    MONGO_URI = "mongodb://localhost:27017/"  # À changer si remote DB
+    DB_NAME = "weblog_db"
+    COLLECTION_SILVER_NAME = "access_logs"
+
+    # Créer et configurer le logger
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+
+    if not data:
+        logger.info("Aucune donnée à amener dans MongoDB.")
+        return
+
+    try:
+        # Connection à MongoDB
+        client = MongoClient(MONGO_URI)
+        db = client[DB_NAME]
+        collection = db[COLLECTION_SILVER_NAME]
+
+        # Insérer les données
+        result = collection.insert_many(data)
+        logger.info("✅ Insertion réussie de ", len(result.inserted_ids), "occurrences dans ",DB_NAME,"\s",{COLLECTION_SILVER_NAME})
+        client.close()
+
+    except Exception as e:
+        logger.error("Failed to save data to MongoDB: ", e)
+        raise
+
 def main():
         work_dict = []
 
@@ -285,7 +316,9 @@ def main():
 
         dict_final = final_transform(work_dict)
 
-        create_csv_file(dict_final)
+        #create_csv_file(dict_final)
+
+        load_to_mongodb(dict_final)
         
 if __name__ == "__main__":
     main()
