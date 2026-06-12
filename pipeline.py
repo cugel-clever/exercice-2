@@ -135,7 +135,7 @@ def get_status_category(input_dict):
 def create_csv_file(input_dict):
 
     # Le fichier à produire
-    csv_file = "output_test.csv"
+    csv_file = "output_logs.csv"
 
     # Extraire les noms des colonnes
     keys = input_dict[0].keys()
@@ -231,6 +231,40 @@ def clean_transform(input_dict):
     # Retourner la liste de dictionnaires une fois traitée
     return input_dict
 
+def final_transform(input_dict):
+        # Ok, ici on ne conserve que les colonnes requises
+        # Colonne exclue : "identd"
+        # Colonne à renommer: raw_timestamp --> timestamp
+        # Colonne à renommer: URL --> url
+        
+
+    for item in input_dict:
+        if "identd" in item:
+            item.pop("identd")
+        
+        if "raw_timestamp" in item:
+            item["timestamp"] = item.pop("raw_timestamp")
+
+        if "URL" in item:
+            item["url"] = item.pop("URL")
+
+    # Réordonnancer les colonnes
+    ordre_souhaite = ["ip", "user", "timestamp", "hour", "method", "url", "protocol", "status_code", "status_category", "size", "referrer", "user_agent", "country"]
+    work_dict2 = []
+
+    # Boucle pour ordonnancer le tout
+    for item2 in input_dict:
+        nouveau_dict = {}
+
+        # Recréer le dictionnaire
+        for key in ordre_souhaite:
+            if key in item2:
+                nouveau_dict[key] = item2[key]
+
+        work_dict2.append(nouveau_dict)
+
+    return work_dict2
+
 def main():
         work_dict = []
 
@@ -249,37 +283,7 @@ def main():
 
         work_dict = clean_transform(work_dict)
 
-        # Ok, ici on ne conserve que les colonnes requises
-        # Colonne exclue : "identd"
-        # Colonne à renommer: raw_timestamp --> timestamp
-        # Colonne à renommer: URL --> url
-        work_dict2 = work_dict
-
-        for item in work_dict2:
-            if "identd" in item:
-                item.pop("identd")
-            
-            if "raw_timestamp" in item:
-                item["timestamp"] = item.pop("raw_timestamp")
-
-            if "URL" in item:
-                item["url"] = item.pop("URL")
-
-        # Réordonnancer les colonnes
-        ordre_souhaite = ["ip", "user", "timestamp", "hour", "method", "url", "protocol", "status_code", "status_category", "size", "referrer", "user_agent", "country"]
-        dict_final = []
-
-        # Boucle pour ordonnancer le tout
-        for item in work_dict2:
-            nouveau_dict = {}
-
-            # Recréer le dictionnaire
-            for key in ordre_souhaite:
-                if key in item:
-                    nouveau_dict[key] = item[key]
-
-            dict_final.append(nouveau_dict)
-
+        dict_final = final_transform(work_dict)
 
         create_csv_file(dict_final)
         
