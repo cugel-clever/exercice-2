@@ -309,14 +309,15 @@ def load_to_mongodb(data: List[Dict[str, Any]]) -> None:
         logger.error("Erreur dans la tentative d'amener les données dans MongoDB: ", e)
         raise
 
-    def create_top_ips_mongo(db):
-        pass
+def create_top_ips_mongo(db):
+    pass
 
-def main():
+def run_pipeline(log_file, use_pandas):
+        # Étape préliminaire du pipeline (couches Bronze et Argent)
         work_dict = []
 
         parse_log(CHEMIN_LOG, CHEMIN_EXTRANT)
-        work_dict = creer_dictionnaire("extraction_log.csv")
+        work_dict = creer_dictionnaire(log_file)
        
         work_dict = convert_timestamp(work_dict)
 
@@ -336,7 +337,14 @@ def main():
 
         load_to_mongodb(dict_final)
 
+        # Étape finale du pipeline (couche Or)
+        if use_pandas:
+            print("Allons-y avec Pandas\n")
+        else:
+            print("Allons-y avec MongoDB\n")
 
+def main():
+    run_pipeline("extraction_log.csv", False)
         
 if __name__ == "__main__":
     main()
