@@ -164,6 +164,10 @@ def get_country(input_dict):
             # IP privées
             if match := re.match(r"10.", item["ip"]):
                 ip_country = "Private/Local"
+            elif match := re.match(r"198.51.100.", item["ip"]):
+                ip_country = "TEST-NET-2"
+            elif match := re.match(r"203.0.113.", item["ip"]):
+                ip_country = "TEST-NET-3"
             elif match := re.match(r"1.1.1.1", item["ip"]):
                 ip_country = "Cloudflare DNS"
             elif match := re.match(r"192.168.", item["ip"]):
@@ -305,6 +309,9 @@ def load_to_mongodb(data: List[Dict[str, Any]]) -> None:
         logger.error("Erreur dans la tentative d'amener les données dans MongoDB: ", e)
         raise
 
+    def create_top_ips_mongo(db):
+        pass
+
 def main():
         work_dict = []
 
@@ -328,6 +335,8 @@ def main():
         create_csv_file(dict_final)
 
         load_to_mongodb(dict_final)
+
+
         
 if __name__ == "__main__":
     main()
