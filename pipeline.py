@@ -285,15 +285,24 @@ def load_to_mongodb(data: List[Dict[str, Any]]) -> None:
         # Connection à MongoDB
         client = MongoClient(MONGO_URI)
         db = client[DB_NAME]
+        
+        # Si la collection existe, la détruire (on part à neuf à chaque exécution du pipeline)
+        if COLLECTION_SILVER_NAME in db.list_collection_names():
+            db[COLLECTION_SILVER_NAME].drop()
+            print(f"La collection {COLLECTION_SILVER_NAME} a été détruite.")
+        else:
+            print(f"La collection {COLLECTION_SILVER_NAME} n'existait pas. Pas de destruction possible.")
+
+        # Créer la collection vierge
         collection = db[COLLECTION_SILVER_NAME]
 
         # Insérer les données
         result = collection.insert_many(data)
-        logger.info("✅ Insertion réussie de ", len(result.inserted_ids), "occurrences dans ",DB_NAME,"\s",{COLLECTION_SILVER_NAME})
+        logger.info(f"✅ Insertion réussie de {len(result.inserted_ids)} occurrences dans {DB_NAME} {COLLECTION_SILVER_NAME}")
         client.close()
 
     except Exception as e:
-        logger.error("Failed to save data to MongoDB: ", e)
+        logger.error("Erreur dans la tentative d'amener les données dans MongoDB: ", e)
         raise
 
 def main():
@@ -316,7 +325,7 @@ def main():
 
         dict_final = final_transform(work_dict)
 
-        #create_csv_file(dict_final)
+        create_csv_file(dict_final)
 
         load_to_mongodb(dict_final)
         
